@@ -1,0 +1,28 @@
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\bin\Debug\Astar.exe.config
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\bin\Debug\Astar.exe
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\bin\Debug\Astar.pdb
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.csprojResolveAssemblyReference.cache
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.Form1.resources
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.Properties.Resources.resources
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.csproj.GenerateResource.Cache
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.exe
+c:\users\arthas\documents\visual studio 2013\Projects\Astar\Astar\obj\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\Astar\Astar\bin\Debug\Astar.exe.config
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.exe
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\Astar\Astar\bin\Debug\Astar.exe
+C:\Users\Arthas\Desktop\Astar\Astar\bin\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.csprojResolveAssemblyReference.cache
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.Form1.resources
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.Properties.Resources.resources
+C:\Users\Arthas\Desktop\Astar\Astar\obj\Debug\Astar.csproj.GenerateResource.Cache
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\bin\Debug\Astar.exe.config
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.exe
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\bin\Debug\Astar.exe
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\bin\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.csprojResolveAssemblyReference.cache
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.Form1.resources
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.Properties.Resources.resources
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.csproj.GenerateResource.Cache
+C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\bin\Debug\BinHeap.dll
