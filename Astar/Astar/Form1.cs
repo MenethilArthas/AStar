@@ -20,8 +20,8 @@ namespace Astar
         public Point goalPoint;
         public Graphics g ;
         public Pen p;
-        public List<Grid> map;
-        //byte[] map;
+        //public List<Grid> map;
+        byte[] map;
         BinHeap.BinHeap open;
         bool findFlag = false;
 
@@ -35,48 +35,48 @@ namespace Astar
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-           
-            //string path = "C:\\Users\\Arthas\\Desktop\\毕业设计\\AStar-C\\AStar-C\\mymap.pgm";
-            //if(File.Exists(path))
-            //{
-            //    FileStream fs = new FileStream(path, FileMode.Open);
-            //    StreamReader sr = new StreamReader(fs,Encoding.UTF7);
-            //    string str = string.Empty;
-            //    str = sr.ReadLine();//p5
-            //    str = sr.ReadLine();//width height
-            //    string[] size=str.Split(' ');
-            //    int width = Convert.ToInt32(size[0]);
-            //    int height = Convert.ToInt32(size[1]);
-            //    float scaleX = (float)width / this.pictureBox1.Width;
-            //    float scaleY = (float)height/ this.pictureBox1.Height;
-            //    this.pictureBox1.Width = width;
-            //    this.pictureBox1.Height = height;
-            //    this.Width = (int)(this.Width * scaleX);
-            //    this.Height = (int)(this.Height * scaleY);
-            //    str = sr.ReadLine();//255
 
-            //    str = sr.ReadLine();
-            //    //str = sr.ReadLine();
-            //    map = new byte[width * height];
-            //    for(int i=0;i<height;i++)
-            //    {
-            //        for (int j = 0; j < width;j++ )
-            //        {
-            //            map[i * width + j] = (byte)str[i * width + j];
-            //        }
-            //    }
-            //}
-            map = new List<Grid>();
-            //初始化地图，用pointlist存储,地图只存储障碍物信息
-            for (int i = 0; i < pictureBox1.Size.Height; i++)
+            string path = "C:\\Users\\Arthas\\Desktop\\毕业设计\\AStar\\AStar\\AStar\\mymap.pgm";
+            if (File.Exists(path))
             {
-                for (int j = 0; j < pictureBox1.Size.Width; j++)
+                FileStream fs = new FileStream(path, FileMode.Open);
+                StreamReader sr = new StreamReader(fs, Encoding.UTF7);
+                string str = string.Empty;
+                str = sr.ReadLine();//p5
+                str = sr.ReadLine();//width height
+                string[] size = str.Split(' ');
+                int width = Convert.ToInt32(size[0]);
+                int height = Convert.ToInt32(size[1]);
+                float scaleX = (float)width / this.pictureBox1.Width;
+                float scaleY = (float)height / this.pictureBox1.Height;
+                this.pictureBox1.Width = width;
+                this.pictureBox1.Height = height;
+                this.Width = (int)(this.Width * scaleX);
+                this.Height = (int)(this.Height * scaleY);
+                str = sr.ReadLine();//255
+
+                str = sr.ReadLine();
+                //str = sr.ReadLine();
+                map = new byte[width * height];
+                for (int i = 0; i < height; i++)
                 {
-                    Grid tmpPoint = new Grid();
-                    tmpPoint.occupy = 0;
-                    map.Add(tmpPoint);
+                    for (int j = 0; j < width; j++)
+                    {
+                        map[i * width + j] = (byte)str[i * width + j];
+                    }
                 }
             }
+            //map = new List<Grid>();
+            ////初始化地图，用pointlist存储,地图只存储障碍物信息
+            //for (int i = 0; i < pictureBox1.Size.Height; i++)
+            //{
+            //    for (int j = 0; j < pictureBox1.Size.Width; j++)
+            //    {
+            //        Grid tmpPoint = new Grid();
+            //        tmpPoint.occupy = 0;
+            //        map.Add(tmpPoint);
+            //    }
+            //}
         }
  
 
@@ -134,51 +134,51 @@ namespace Astar
 
         private void btnCreateObs_Click(object sender, EventArgs e)
         {
-            btnCreateObs.Enabled = false;
-            g = pictureBox1.CreateGraphics();
-
-            SolidBrush brush = new SolidBrush(Color.Black);
-            Random ro = new Random();
-
-            for (int i = 0; i < obsNum; i++)
-            {
-                int xDown = 0;
-                int xUp = pictureBox1.Width - obsWidth;
-                int yDown = 0;
-                int yUp = pictureBox1.Height - obsHeight;
-                int obsX = ro.Next(xDown, xUp);
-                int obsY = ro.Next(yDown, yUp);
-
-                g.FillRectangle(brush, obsX, obsY, obsWidth, obsHeight);
-                //将对应的map上的点障碍物信息设为1
-                for (int j = 0; j < obsWidth; j++)
-                {
-                    for (int k = 0; k < obsHeight; k++)
-                    {
-                        map[(obsY + k) * pictureBox1.Width + (obsX + j)].occupy = 1;
-                    }
-                }
-
-
-            }
-            btnCreateObs.Enabled = true;
+            //btnCreateObs.Enabled = false;
             //g = pictureBox1.CreateGraphics();
-            //SolidBrush blackBrush = new SolidBrush(Color.Black);
-            //SolidBrush grayBrush = new SolidBrush(Color.Gray);
-            //SolidBrush whiteBrush = new SolidBrush(Color.White);
-            //for (int i = 0; i < this.pictureBox1.Height; i++)
+
+            //SolidBrush brush = new SolidBrush(Color.Black);
+            //Random ro = new Random();
+
+            //for (int i = 0; i < obsNum; i++)
             //{
-            //    for (int j = 0; j < this.pictureBox1.Width; j++)
+            //    int xDown = 0;
+            //    int xUp = pictureBox1.Width - obsWidth;
+            //    int yDown = 0;
+            //    int yUp = pictureBox1.Height - obsHeight;
+            //    int obsX = ro.Next(xDown, xUp);
+            //    int obsY = ro.Next(yDown, yUp);
+
+            //    g.FillRectangle(brush, obsX, obsY, obsWidth, obsHeight);
+            //    //将对应的map上的点障碍物信息设为1
+            //    for (int j = 0; j < obsWidth; j++)
             //    {
-                   
-            //        if (map[i * this.pictureBox1.Width + j] == 254)
-            //            g.FillRectangle(whiteBrush, j, i, 1, 1);
-            //        else if (map[i * this.pictureBox1.Width + j] == 205)
-            //            g.FillRectangle(grayBrush, j, i, 1, 1);
-            //        else if (map[i * this.pictureBox1.Width + j] == 0)
-            //            g.FillRectangle(blackBrush, j, i, 1, 1);
+            //        for (int k = 0; k < obsHeight; k++)
+            //        {
+            //            map[(obsY + k) * pictureBox1.Width + (obsX + j)].occupy = 1;
+            //        }
             //    }
+
+
             //}
+            //btnCreateObs.Enabled = true;
+            g = pictureBox1.CreateGraphics();
+            SolidBrush blackBrush = new SolidBrush(Color.Black);
+            SolidBrush grayBrush = new SolidBrush(Color.Gray);
+            SolidBrush whiteBrush = new SolidBrush(Color.White);
+            for (int i = 0; i < this.pictureBox1.Height; i++)
+            {
+                for (int j = 0; j < this.pictureBox1.Width; j++)
+                {
+
+                    if (map[i * this.pictureBox1.Width + j] == 254)
+                        g.FillRectangle(whiteBrush, j, i, 1, 1);
+                    else if (map[i * this.pictureBox1.Width + j] == 205)
+                        g.FillRectangle(grayBrush, j, i, 1, 1);
+                    else if (map[i * this.pictureBox1.Width + j] == 0)
+                        g.FillRectangle(blackBrush, j, i, 1, 1);
+                }
+            }
 
 
         }
@@ -244,7 +244,7 @@ namespace Astar
                         if (row >= 0 && row <pictureBox1.Width && col >= 0 && col <pictureBox1.Height)
                         {
                             //不是障碍物且不在closed列表里
-                            if (closed[col * pictureBox1.Width + row] != 1 && map[col * pictureBox1.Width + row].occupy != 1 )
+                            if (closed[col * pictureBox1.Width + row] != 1 && map[col * pictureBox1.Width + row] == 254 )
                             {
                                 if(row!=goalPoint.X||col!=goalPoint.Y)
                                 {
@@ -354,7 +354,7 @@ namespace Astar
                 size = up-down;
                 for (int step = 0; step < size; step++)
                 {
-                    if (map[(down + step) * pictureBox1.Width + p1.X].occupy ==1)
+                    if (map[(down + step) * pictureBox1.Width + p1.X]!=254)
                     {
                         return true;
                     }
@@ -369,7 +369,7 @@ namespace Astar
                 size = up - down;
                 for (int step = 0; step < size; step++)
                 {
-                    if (map[p1.Y * pictureBox1.Width + down + step].occupy == 1)
+                    if (map[p1.Y * pictureBox1.Width + down + step]!= 254)
                     {
                         return true;
                     }
@@ -387,7 +387,7 @@ namespace Astar
                     for (int step = 1; step < size; step++)
                     {
                         result = func.CalcResult(down + step);
-                        if (map[(int)(result) * pictureBox1.Width + down+step].occupy == 1)
+                        if (map[(int)(result) * pictureBox1.Width + down+step] != 254)
                         {
                             return true;
                         }
@@ -403,7 +403,7 @@ namespace Astar
                     for (int step = 0; step < size; step++)
                     {
                         result = func.CalcResult(down + step);
-                        if (map[(down + step) * pictureBox1.Width + (int)result].occupy == 1)
+                        if (map[(down + step) * pictureBox1.Width + (int)result] != 254)
                         {
                             return true;
                         }
@@ -415,27 +415,27 @@ namespace Astar
 
         private void btnClearPath_Click(object sender, EventArgs e)
         {
-            findFlag = false;
-            open.ReInitHeap();
-            g = pictureBox1.CreateGraphics();
-            g.Clear(Color.White);
-            SolidBrush brush = new SolidBrush(Color.Black);
+            //findFlag = false;
+            //open.ReInitHeap();
+            //g = pictureBox1.CreateGraphics();
+            //g.Clear(Color.White);
+            //SolidBrush brush = new SolidBrush(Color.Black);
 
-            //将对应的map上的点障碍物信息设为1
-            for (int j = 0; j < pictureBox1.Width * pictureBox1.Height; j++)
-            {
-                if (map[j].occupy == 1)
-                {
-                    int Col = j / pictureBox1.Width;
-                    int Row = j % pictureBox1.Width;
-                    g.FillRectangle(brush, Row, Col, 1, 1);
-                }
+            ////将对应的map上的点障碍物信息设为1
+            //for (int j = 0; j < pictureBox1.Width * pictureBox1.Height; j++)
+            //{
+            //    if (map[j].occupy == 1)
+            //    {
+            //        int Col = j / pictureBox1.Width;
+            //        int Row = j % pictureBox1.Width;
+            //        g.FillRectangle(brush, Row, Col, 1, 1);
+            //    }
 
 
-            }
-            btnStartPoint.Enabled = true;
-            btnEndPoint.Enabled = true;
-            btnNavgate.Enabled = true;
+            //}
+            //btnStartPoint.Enabled = true;
+            //btnEndPoint.Enabled = true;
+            //btnNavgate.Enabled = true;
         }
 
     }

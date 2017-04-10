@@ -26,3 +26,13 @@ C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.Form1.resources
 C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.Properties.Resources.resources
 C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\obj\Debug\Astar.csproj.GenerateResource.Cache
 C:\Users\Arthas\Desktop\毕业设计\Astar\Astar\bin\Debug\BinHeap.dll
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\bin\Debug\Astar.exe.config
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.exe
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\bin\Debug\Astar.exe
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\bin\Debug\Astar.pdb
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\bin\Debug\BinHeap.dll
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.csprojResolveAssemblyReference.cache
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.Form1.resources
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.Properties.Resources.resources
+C:\Users\Arthas\Desktop\毕业设计\AStar\Astar\Astar\obj\Debug\Astar.csproj.GenerateResource.Cache
