@@ -36,12 +36,13 @@
             this.btnClearPath = new System.Windows.Forms.Button();
             this.btnCreateObs = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.btnImportMap = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBox1
             // 
-            this.pictureBox1.BackColor = System.Drawing.Color.White;
+            this.pictureBox1.BackColor = System.Drawing.Color.Gray;
             this.pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pictureBox1.Location = new System.Drawing.Point(14, 16);
             this.pictureBox1.Name = "pictureBox1";
@@ -53,7 +54,7 @@
             // btnStartPoint
             // 
             this.btnStartPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnStartPoint.Location = new System.Drawing.Point(494, 28);
+            this.btnStartPoint.Location = new System.Drawing.Point(495, 20);
             this.btnStartPoint.Name = "btnStartPoint";
             this.btnStartPoint.Size = new System.Drawing.Size(106, 37);
             this.btnStartPoint.TabIndex = 1;
@@ -64,7 +65,7 @@
             // btnEndPoint
             // 
             this.btnEndPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnEndPoint.Location = new System.Drawing.Point(494, 101);
+            this.btnEndPoint.Location = new System.Drawing.Point(495, 93);
             this.btnEndPoint.Name = "btnEndPoint";
             this.btnEndPoint.Size = new System.Drawing.Size(106, 37);
             this.btnEndPoint.TabIndex = 2;
@@ -75,7 +76,7 @@
             // btnNavgate
             // 
             this.btnNavgate.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnNavgate.Location = new System.Drawing.Point(494, 258);
+            this.btnNavgate.Location = new System.Drawing.Point(495, 312);
             this.btnNavgate.Name = "btnNavgate";
             this.btnNavgate.Size = new System.Drawing.Size(106, 37);
             this.btnNavgate.TabIndex = 3;
@@ -87,7 +88,7 @@
             // 
             this.btnClearPath.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.btnClearPath.AutoSize = true;
-            this.btnClearPath.Location = new System.Drawing.Point(494, 338);
+            this.btnClearPath.Location = new System.Drawing.Point(495, 385);
             this.btnClearPath.Name = "btnClearPath";
             this.btnClearPath.Size = new System.Drawing.Size(106, 37);
             this.btnClearPath.TabIndex = 4;
@@ -98,7 +99,7 @@
             // btnCreateObs
             // 
             this.btnCreateObs.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnCreateObs.Location = new System.Drawing.Point(494, 177);
+            this.btnCreateObs.Location = new System.Drawing.Point(495, 239);
             this.btnCreateObs.Name = "btnCreateObs";
             this.btnCreateObs.Size = new System.Drawing.Size(106, 37);
             this.btnCreateObs.TabIndex = 5;
@@ -106,11 +107,23 @@
             this.btnCreateObs.UseVisualStyleBackColor = true;
             this.btnCreateObs.Click += new System.EventHandler(this.btnCreateObs_Click);
             // 
+            // btnImportMap
+            // 
+            this.btnImportMap.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.btnImportMap.Location = new System.Drawing.Point(495, 166);
+            this.btnImportMap.Name = "btnImportMap";
+            this.btnImportMap.Size = new System.Drawing.Size(106, 37);
+            this.btnImportMap.TabIndex = 6;
+            this.btnImportMap.Text = "导入地图";
+            this.btnImportMap.UseVisualStyleBackColor = true;
+            this.btnImportMap.Click += new System.EventHandler(this.btnImportMap_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(626, 419);
+            this.ClientSize = new System.Drawing.Size(626, 439);
+            this.Controls.Add(this.btnImportMap);
             this.Controls.Add(this.btnCreateObs);
             this.Controls.Add(this.btnClearPath);
             this.Controls.Add(this.btnNavgate);
@@ -135,6 +148,7 @@
         private System.Windows.Forms.Button btnClearPath;
         private System.Windows.Forms.Button btnCreateObs;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Button btnImportMap;
     }
 }
 
