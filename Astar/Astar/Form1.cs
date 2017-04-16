@@ -22,10 +22,12 @@ namespace Astar
         public Pen p;
         //public List<Grid> map;
         MAP map;
+        private int[] test;
         int[] parentList;
         int obsWidth = 5;
         int obsHeight = 5;
         int obsNum = 50;
+        int obsCost = 200;
         public Form1()
         {
             InitializeComponent();           
@@ -49,6 +51,7 @@ namespace Astar
                 map.width = width;
                 map.height = height;
 
+                test=new int[width*height];
                 float scaleX = (float)width / this.pictureBox1.Width;
                 float scaleY = (float)height / this.pictureBox1.Height;
                 this.pictureBox1.Width = width;
@@ -67,7 +70,19 @@ namespace Astar
                     {
                         map.mapdata[i * width + j] = (byte)str[i * width + j];
                         if (map.mapdata[i * width + j] == 0)
+                        {
                             map.type[i * width + j] = 1;
+                            int qunima = 5;
+                            for(int k=i-qunima;k<=i+qunima;k++)
+                            {
+                                for (int w = -qunima; w <= qunima;w++ )
+                                {
+                                    test[k * width + j + w] = obsCost;
+                                }
+  
+                            }
+                        }
+                           
                         else
                             map.type[i * width + j] = 0;
                     }
@@ -148,7 +163,7 @@ namespace Astar
             Point p2 = new Point(0, 0);
             
 
-            navigate nav = new navigate(map, startPoint, goalPoint);
+            navigate nav = new navigate(map, startPoint, goalPoint,test);
 
             if(nav.GetPath()==true)
             {
@@ -325,6 +340,16 @@ namespace Astar
                 g.FillRectangle(new SolidBrush(Color.Red), picBoxPosition.X, picBoxPosition.Y, 1, 1);
                 goalPoint = picBoxPosition;
             }
+        }
+
+        private void btnTest_Click(object sender, EventArgs e)
+        {
+            Point p1 = startPoint;
+            Point p2 = goalPoint;
+            int interval = 10;//时间间隔10ms
+            int vel = 500;//速度500mm/ms
+            double delta = 0.0;
+            double xita = 0.0;
         }
 
 

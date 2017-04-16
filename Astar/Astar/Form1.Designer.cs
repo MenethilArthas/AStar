@@ -37,6 +37,7 @@
             this.btnCreateObs = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.btnImportMap = new System.Windows.Forms.Button();
+            this.btnTest = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -54,7 +55,7 @@
             // btnStartPoint
             // 
             this.btnStartPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnStartPoint.Location = new System.Drawing.Point(495, 20);
+            this.btnStartPoint.Location = new System.Drawing.Point(603, 77);
             this.btnStartPoint.Name = "btnStartPoint";
             this.btnStartPoint.Size = new System.Drawing.Size(106, 37);
             this.btnStartPoint.TabIndex = 1;
@@ -65,7 +66,7 @@
             // btnEndPoint
             // 
             this.btnEndPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnEndPoint.Location = new System.Drawing.Point(495, 93);
+            this.btnEndPoint.Location = new System.Drawing.Point(603, 150);
             this.btnEndPoint.Name = "btnEndPoint";
             this.btnEndPoint.Size = new System.Drawing.Size(106, 37);
             this.btnEndPoint.TabIndex = 2;
@@ -76,7 +77,7 @@
             // btnNavgate
             // 
             this.btnNavgate.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnNavgate.Location = new System.Drawing.Point(495, 312);
+            this.btnNavgate.Location = new System.Drawing.Point(603, 369);
             this.btnNavgate.Name = "btnNavgate";
             this.btnNavgate.Size = new System.Drawing.Size(106, 37);
             this.btnNavgate.TabIndex = 3;
@@ -88,7 +89,7 @@
             // 
             this.btnClearPath.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.btnClearPath.AutoSize = true;
-            this.btnClearPath.Location = new System.Drawing.Point(495, 385);
+            this.btnClearPath.Location = new System.Drawing.Point(603, 442);
             this.btnClearPath.Name = "btnClearPath";
             this.btnClearPath.Size = new System.Drawing.Size(106, 37);
             this.btnClearPath.TabIndex = 4;
@@ -99,7 +100,7 @@
             // btnCreateObs
             // 
             this.btnCreateObs.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnCreateObs.Location = new System.Drawing.Point(495, 239);
+            this.btnCreateObs.Location = new System.Drawing.Point(603, 296);
             this.btnCreateObs.Name = "btnCreateObs";
             this.btnCreateObs.Size = new System.Drawing.Size(106, 37);
             this.btnCreateObs.TabIndex = 5;
@@ -110,7 +111,7 @@
             // btnImportMap
             // 
             this.btnImportMap.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnImportMap.Location = new System.Drawing.Point(495, 166);
+            this.btnImportMap.Location = new System.Drawing.Point(603, 223);
             this.btnImportMap.Name = "btnImportMap";
             this.btnImportMap.Size = new System.Drawing.Size(106, 37);
             this.btnImportMap.TabIndex = 6;
@@ -118,11 +119,23 @@
             this.btnImportMap.UseVisualStyleBackColor = true;
             this.btnImportMap.Click += new System.EventHandler(this.btnImportMap_Click);
             // 
+            // btnTest
+            // 
+            this.btnTest.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.btnTest.Location = new System.Drawing.Point(463, 480);
+            this.btnTest.Name = "btnTest";
+            this.btnTest.Size = new System.Drawing.Size(75, 23);
+            this.btnTest.TabIndex = 7;
+            this.btnTest.Text = "test";
+            this.btnTest.UseVisualStyleBackColor = true;
+            this.btnTest.Click += new System.EventHandler(this.btnTest_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(626, 439);
+            this.ClientSize = new System.Drawing.Size(734, 553);
+            this.Controls.Add(this.btnTest);
             this.Controls.Add(this.btnImportMap);
             this.Controls.Add(this.btnCreateObs);
             this.Controls.Add(this.btnClearPath);
@@ -149,6 +162,7 @@
         private System.Windows.Forms.Button btnCreateObs;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button btnImportMap;
+        private System.Windows.Forms.Button btnTest;
     }
 }
 

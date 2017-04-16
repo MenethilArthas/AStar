@@ -14,13 +14,16 @@ namespace Astar
         private Point startPoint;
         private Point goalPoint;
         private TWD[] twds=new TWD[8];
+        private int[] test;
+
           
-        public navigate(MAP _map,Point _startPoint,Point _goalPoint)
+        public navigate(MAP _map,Point _startPoint,Point _goalPoint,int [] _test)
         {
             map = _map;
             parentList = new int[map.width*map.height];
             startPoint = _startPoint;
             goalPoint = _goalPoint;
+            test = _test;
             twds[0].x = 0; twds[0].y = -1;    twds[0].cost=10  ;  //上
             twds[1].x = 0; twds[1].y = 1;     twds[1].cost=10  ;  //下
             twds[2].x = -1; twds[2].y = 0;    twds[2].cost=10  ;  //左
@@ -32,6 +35,7 @@ namespace Astar
         }
         public bool GetPath()
         {
+            
             int row=0,col=0;
             BinHeap.BinHeap open= new BinHeap.BinHeap(map.width*map.height);
             BinHeap.NodeStruct startNode = new BinHeap.NodeStruct();
@@ -70,7 +74,7 @@ namespace Astar
                                 tmpNode.point.X = row;
                                 tmpNode.point.Y = col;
                                 tmpNode.hValue = CalcDist(tmpNode.point, goalPoint);
-                                tmpNode.gValue = popNode.gValue + twds[i].cost;
+                                tmpNode.gValue = popNode.gValue + twds[i].cost+test[col*map.width+row];
                                 tmpNode.fValue = tmpNode.hValue + tmpNode.gValue;
                               
                                 //如果节点已经在open列表中，比较之前的fvalue和新的fvalue
@@ -89,6 +93,7 @@ namespace Astar
                                     //添加tmpNode的父节点索引
                                     parentList[tmpNode.point.Y * map.width + tmpNode.point.X] = popNode.point.Y * map.width + popNode.point.X;
                                     open.InsertItem(tmpNode);
+
                                 }
                             }
                             else
