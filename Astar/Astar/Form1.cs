@@ -20,10 +20,10 @@ namespace Astar
         public Point goalPoint;
         public Graphics g ;
         public Pen p;
-        //public List<Grid> map;
+        public Stack<Point> keyPoints;
+        navigate nav;
         MAP map;
-        private int[] test;
-        int[] parentList;
+        private int[] costMap;
         int obsWidth = 5;
         int obsHeight = 5;
         int obsNum = 50;
@@ -51,7 +51,7 @@ namespace Astar
                 map.width = width;
                 map.height = height;
 
-                test=new int[width*height];
+                costMap = new int[width * height];
                 float scaleX = (float)width / this.pictureBox1.Width;
                 float scaleY = (float)height / this.pictureBox1.Height;
                 this.pictureBox1.Width = width;
@@ -77,7 +77,7 @@ namespace Astar
                             {
                                 for (int w = -qunima; w <= qunima;w++ )
                                 {
-                                    test[k * width + j + w] = obsCost;
+                                    costMap[k * width + j + w] = obsCost;
                                 }
   
                             }
@@ -159,169 +159,98 @@ namespace Astar
             p = new Pen(Color.Red, 1);
             g = pictureBox1.CreateGraphics();
 
-            Point p1 = new Point(0, 0);
-            Point p2 = new Point(0, 0);
-            
-
-            navigate nav = new navigate(map, startPoint, goalPoint,test);
+            Point childPoint = new Point(0, 0);
+            Point parentPoint = new Point(0, 0);
+            navigate nav = new navigate(map, startPoint, goalPoint, costMap);
 
             if(nav.GetPath()==true)
             {
-                parentList = nav.parentList;
-                int parentIndex = goalPoint.Y * pictureBox1.Width + goalPoint.X;
-                int childRow = goalPoint.X;
-                int childCol = goalPoint.Y;
-                int tempCol = 0;
-                int tempRow = 0;
-                while (nav.parentList[parentIndex] != 0)
-                {
-                    int parentCol = nav.parentList[parentIndex] / pictureBox1.Width;
-                    int parentRow = nav.parentList[parentIndex] % pictureBox1.Width;
-
-                    p1.X = parentRow;
-                    p1.Y = parentCol;
-                    p2.X = childRow;
-                    p2.Y = childCol;
-
-                    if (IsExistObs(p1, p2) == true)
-                    {
-                        childRow = tempRow;
-                        childCol = tempCol;
-                        parentIndex = childCol * pictureBox1.Width + childRow;
-                        p1.X = tempRow;
-                        p1.Y = tempCol;
-
-                        g.DrawLine(p, p1, p2);
-                    }
-                    else
-                    {
-                        tempCol = parentCol;
-                        tempRow = parentRow;
-                        if (tempCol == startPoint.Y && tempRow == startPoint.X)
-                            g.DrawLine(p, p1, p2);
-                        parentIndex = parentCol * pictureBox1.Width + parentRow;
-                    }
-                }
+                keyPoints = nav.keyPoints;
+                //childPoint = keyPoints.Pop();//startPoint
+                
+                //while(keyPoints.Count!=0)
+                //{
+                //    parentPoint = keyPoints.Pop();
+                //    g.DrawLine(p, childPoint, parentPoint);
+                //    childPoint = parentPoint;
+                //}                
             }
         }
 
-
-        public bool IsExistObs(Point p1,Point p2)
+        private void btnTest_Click(object sender, EventArgs e)
         {
-            int size = 0;
-            int up=0;
-            int down=0;
-            double result = 0;
-            //p1p2垂直于x轴
-            if (p1.X == p2.X)
-            {
-                up=Math.Max(p1.Y,p2.Y);
-                down=Math.Min(p1.Y,p2.Y);
-                size = up-down;
-                for (int step = 0; step < size; step++)
-                {
-                    if (map.mapdata[(down + step) * pictureBox1.Width + p1.X]!=254)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            //p1p2垂直于y轴
-            else if (p1.Y == p2.Y)
-            {
-                up = Math.Max(p1.X, p2.X);
-                down = Math.Min(p1.X, p2.X);
-                size = up - down;
-                for (int step = 0; step < size; step++)
-                {
-                    if (map.mapdata[p1.Y * pictureBox1.Width + down + step]!= 254)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            else
-            {
-                Func func = new Func(p1, p2);
-                if(func.type==0)
-                {
-                    up = Math.Max(p1.X, p2.X);
-                    down = Math.Min(p1.X, p2.X);
-                    size = up - down;
-                    for (int step = 1; step < size; step++)
-                    {
-                        result = func.CalcResult(down + step);
-                        if (map.mapdata[(int)(result) * pictureBox1.Width + down+step] != 254)
-                        {
-                            return true;
-                        }
+            btnTest.Enabled = false;
+            Point p1 = new Point(0, 0);
+            Point p2 = new Point(0, 0);
+            Point curPoint = new Point(0, 0);
+            Point tarPoint = new Point(0, 0);
+            int interval = 1;
+            int vel = 2;
+            double deltaX = 0.0;
+            double deltaY = 0.0;
+            double orientation = 0.0;
 
-                    }
-                    return false;
-                }
-                else
+            p = new Pen(Color.Red, 1);
+            g = pictureBox1.CreateGraphics();
+            nav = new navigate(map, startPoint, goalPoint, costMap);
+            nav.GetPath();
+            keyPoints = nav.keyPoints;
+            p1 = keyPoints.Pop();//startPoint
+            while (keyPoints.Count != 0)
+            {
+                tarPoint = keyPoints.Pop();         
+                while(Math.Abs(p2.X-tarPoint.X)>1||Math.Abs(p2.Y-tarPoint.Y)>1)
                 {
-                    up = Math.Max(p1.Y, p2.Y);
-                    down = Math.Min(p1.Y, p2.Y);
-                    size = up - down;
-                    for (int step = 0; step < size; step++)
+                    orientation = CalcRad(p1, tarPoint);
+                    deltaX = vel * interval * Math.Cos(orientation);
+                    deltaY = vel * interval * Math.Sin(orientation);
+                    p2.X = p1.X + (int)Math.Round(deltaX,0);
+                    p2.Y = p1.Y + (int)Math.Round(deltaY, 0);
+                    g.DrawLine(p, p1, p2);
+                    //System.Threading.Thread.Sleep(100);
+                    Delay(100);
+                    if(nav.IsExistObs(p2,tarPoint)==true)
                     {
-                        result = func.CalcResult(down + step);
-                        if (map.mapdata[(down + step) * pictureBox1.Width + (int)result] != 254)
-                        {
-                            return true;
-                        }
+                        nav = new navigate(map, p2, goalPoint, costMap);
+                        nav.GetPath();
+                        keyPoints = nav.keyPoints;
+                        p1 = keyPoints.Pop();
+                        tarPoint = keyPoints.Pop();
                     }
-                    return false;
+                    else
+                    {
+                        p1 = p2;
+                    }
                 }
+                curPoint = tarPoint;
+                //g.DrawLine(p, childPoint, parentPoint);
+                
             }
+           
         }
 
         private void btnClearPath_Click(object sender, EventArgs e)
         {
-            p = new Pen(Color.White, 1);
             g = pictureBox1.CreateGraphics();
-            Point p1 = new Point();
-            Point p2 = new Point();
-            int parentIndex = goalPoint.Y * pictureBox1.Width + goalPoint.X;
-            int childRow = goalPoint.X;
-            int childCol = goalPoint.Y;
-            int tempCol = 0;
-            int tempRow = 0;
-            while (parentList[parentIndex] != 0)
+            SolidBrush blackBrush = new SolidBrush(Color.Black);
+            SolidBrush grayBrush = new SolidBrush(Color.Gray);
+            SolidBrush whiteBrush = new SolidBrush(Color.White);
+            for (int i = 0; i < this.pictureBox1.Height; i++)
             {
-                int parentCol = parentList[parentIndex] / pictureBox1.Width;
-                int parentRow = parentList[parentIndex] % pictureBox1.Width;
-
-                p1.X = parentRow;
-                p1.Y = parentCol;
-                p2.X = childRow;
-                p2.Y = childCol;
-
-                if (IsExistObs(p1, p2) == true)
+                for (int j = 0; j < this.pictureBox1.Width; j++)
                 {
-                    childRow = tempRow;
-                    childCol = tempCol;
-                    parentIndex = childCol * pictureBox1.Width + childRow;
-                    p1.X = tempRow;
-                    p1.Y = tempCol;
 
-                    g.DrawLine(p, p1, p2);
-                }
-                else
-                {
-                    tempCol = parentCol;
-                    tempRow = parentRow;
-                    if (tempCol == startPoint.Y && tempRow == startPoint.X)
-                        g.DrawLine(p, p1, p2);
-                    parentIndex = parentCol * pictureBox1.Width + parentRow;
+                    if (map.mapdata[i * this.pictureBox1.Width + j] == 254)
+                        g.FillRectangle(whiteBrush, j, i, 1, 1);
+
+                    else if (map.mapdata[i * this.pictureBox1.Width + j] == 0)
+                        g.FillRectangle(blackBrush, j, i, 1, 1);
                 }
             }
+            btnNavgate.Enabled = true;
             btnStartPoint.Enabled = true;
             btnEndPoint.Enabled = true;
-            btnNavgate.Enabled = true;
+            btnTest.Enabled = true;
         }
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
@@ -334,58 +263,51 @@ namespace Astar
                 g.FillRectangle(new SolidBrush(Color.Blue), picBoxPosition.X, picBoxPosition.Y, 1, 1);
                 startPoint = picBoxPosition;
             }
-            else
+            else if(setEndPointFlag==1)
             {
                 setEndPointFlag = 0;
                 g.FillRectangle(new SolidBrush(Color.Red), picBoxPosition.X, picBoxPosition.Y, 1, 1);
                 goalPoint = picBoxPosition;
             }
+            else if(btnTest.Enabled==false)
+            {
+                int dynObsNum = 4;
+                int x = picBoxPosition.X - dynObsNum;
+                int y = picBoxPosition.Y - dynObsNum;
+                g.FillRectangle(new SolidBrush(Color.Black), x, y, dynObsNum * 2, dynObsNum * 2);
+                for (int i = y; i <= y + dynObsNum * 2; i++)
+                {
+                    for (int j = x; j < x + dynObsNum * 2; j++)
+                    {
+                        nav.map.mapdata[i * map.width + j] = 0;
+                        map.mapdata[i * map.width + j] = 0;
+                    }
+                }
+            }
         }
-
-        private void btnTest_Click(object sender, EventArgs e)
+        double CalcRad(Point p1, Point p2)
         {
-            Point p1 = startPoint;
-            Point p2 = goalPoint;
-            int interval = 10;//时间间隔10ms
-            int vel = 500;//速度500mm/ms
-            double delta = 0.0;
-            double xita = 0.0;
-        }
-
-
-
-    }
-
-    //public struct TWD
-    //{
-    //    public int x, y;
-    //    public int cost;
-    //}
-    public class Grid
-    {
-        public int occupy;
-    }
-    public class Func
-    {
-        public double k;
-        public double b;
-        public int type;//为0代表横向迭代，即给定x求y,为1代表纵向迭代，即给定y求x
-        public Func (Point A,Point B)
-        {
-            k = (double)(B.Y - A.Y) / (double)(B.X - A.X);
-            b = B.Y - k * B.X;
-            if (Math.Abs(k) < 1)
-                type = 0;
+            double disX = p2.X - p1.X;
+            double disY = p2.Y - p1.Y;
+            double resultRad = 0.0;
+            double distance = Math.Sqrt(Math.Pow(disX, 2.0) + Math.Pow(disY, 2.0));
+            if (disY > 0)
+                resultRad = Math.Acos(disX / distance);
             else
-                type = 1;
+                resultRad = -Math.Acos(disX / distance);
+            return resultRad;
         }
-        public double CalcResult(float var)
+        void Delay(int milliSecond)
         {
-            if (type == 0)
-                return (k * var + b);
-            else
-                return (var - b) / k;
+            int start = Environment.TickCount;
+            while (Math.Abs(Environment.TickCount - start) < milliSecond)
+            {
+                Application.DoEvents();
+            }
         }
+
+
     }
+
 
 }
