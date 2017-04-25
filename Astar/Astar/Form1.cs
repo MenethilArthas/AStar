@@ -26,8 +26,11 @@ namespace Astar
         PgmFile pgmFile;
         FileStream keyPoints_fs;
         FileStream calcResult_fs;
+        FileStream laserData_fs;
+
         StreamWriter keyPoints_sw;
-        StreamWriter calcResult_sw; 
+        StreamWriter calcResult_sw;
+        StreamWriter laserData_sw; 
         
         int obsWidth = 5;
         int obsHeight = 5;
@@ -50,6 +53,11 @@ namespace Astar
             calcResult_fs = new FileStream(logFIlePath, System.IO.FileMode.Append);
             calcResult_sw = new StreamWriter(calcResult_fs, System.Text.Encoding.Default);
             calcResult_sw.WriteLine(DateTime.Now.ToString());
+
+            logFIlePath = Environment.CurrentDirectory.ToString() + "\\LaserData.log";
+            laserData_fs = new FileStream(logFIlePath, System.IO.FileMode.Create);
+            laserData_sw = new StreamWriter(laserData_fs, System.Text.Encoding.Default);
+            laserData_sw.WriteLine(DateTime.Now.ToString());
             //读取pgm格式地图
             string path = "C:\\Users\\Arthas\\Desktop\\毕业设计\\AStar\\AStar\\AStar\\mymap.pgm";
             pgmFile = new PgmFile(path);
@@ -80,6 +88,12 @@ namespace Astar
             serialPort.DataReceived += new SerialDataReceivedEventHandler(Serial_DataReceived);
             rplidar.DataReceived += new SerialDataReceivedEventHandler(Rplidar_DataReceived);
             rplidar.Open();
+            StartMotor();
+            GetInfo();
+
+            //设置默认起点坐标
+            startPoint = new Point(310, 310);
+
         }
 
         private void btnImportMap_Click(object sender, EventArgs e)
@@ -205,9 +219,8 @@ namespace Astar
                         coorX = BitConverter.ToSingle(bytesToSingle, 2);
                         coorY = -BitConverter.ToSingle(bytesToSingle, 6);
                         angle = (float)Math.PI - BitConverter.ToSingle(bytesToSingle, 10);
-                        //angle = BitConverter.ToSingle(bytesToSingle, 10);
                        
-                        Console.WriteLine("x:{0}\ty:{1}\tangle:{2}\t", coorX, coorY, angle);
+                        Console.WriteLine("x:{0}\ty:{1}\tangle:{2}\t", coorX, coorY, angle); 
                         buffer.RemoveRange(0, 22);
                     }
                 }
@@ -217,11 +230,17 @@ namespace Astar
                 }
 
             }
-           // serialPort.DiscardInBuffer();
 
         }
 
+        struct rplidar_measurement_data
+        {
+            public float angle_q6;
+            public float distance_q2;
+        };
+        rplidar_measurement_data tempData=new rplidar_measurement_data();
         List<byte> rplidar_buffer = new List<byte>(1024);
+        List<rplidar_measurement_data> measurementData = new List<rplidar_measurement_data>(360);
         byte messageType = 0;//0代表起始应答报文，1代表数据应答报文
         byte cmdType = 0;//0x04代表设备信息获取命令，0x81代表开始扫描采样命令
         int majorModel = 0;
@@ -275,6 +294,7 @@ namespace Astar
                                     Console.Write("{0:X}{1:X}", serialNumber[i * 2 + 1], serialNumber[i * 2]);
                                     messageType = 0;
                                 }
+                                Console.WriteLine(" ");
                             }
                         }
                         else
@@ -301,14 +321,25 @@ namespace Astar
                                 quality = (byte)(rplidar_buffer[0] & 0xfc);
                                 if (quality != 0)
                                 {
-                                    angle_q6_buf[0] = rplidar_buffer[1];
-                                    angle_q6_buf[1] = rplidar_buffer[2];
-                                    angle_q6 = (UInt16)(BitConverter.ToUInt16(angle_q6_buf, 0) >> 1);
                                     distance_q2_buf[0] = rplidar_buffer[3];
                                     distance_q2_buf[1] = rplidar_buffer[4];
                                     distance_q2 = BitConverter.ToUInt16(distance_q2_buf, 0);
-                                    //Console.WriteLine("theta:{0}\tdistance:{1}\tquality:{2}", angle_q6 / 64.0f, distance_q2 / 4.0f, quality);
-                                    //sw.WriteLine("theta:{0}\tdistance:{1}\tquality:{2}", angle_q6 / 64.0f, distance_q2 / 4.0f, quality);
+                                    if(distance_q2!=0)
+                                    {
+                                        angle_q6_buf[0] = rplidar_buffer[1];
+                                        angle_q6_buf[1] = rplidar_buffer[2];
+                                        angle_q6 = (UInt16)(BitConverter.ToUInt16(angle_q6_buf, 0) >> 1);
+
+                                        tempData.angle_q6 = angle_q6 / 64.0f / 360 * 2 * (float)Math.PI;
+                                        tempData.distance_q2 = distance_q2 / 4.0f;
+                                        if (measurementData.Count < 360)
+                                            measurementData.Add(tempData);
+                                        else
+                                        {
+                                            measurementData.RemoveRange(0, measurementData.Count);
+                                        }
+                                        Console.WriteLine("theta:{0}\tdistance:{1}\tquality:{2}", angle_q6 / 64.0f, distance_q2 / 4.0f, quality);                                      
+                                    }
                                 }
                                 rplidar_buffer.RemoveRange(0, 5);
 
@@ -330,7 +361,7 @@ namespace Astar
         private void btnTest_Click(object sender, EventArgs e)
         {
             btnTest.Enabled = false;
-            startPoint = new Point(310, 310);//默认起点
+           // startPoint = new Point(310, 310);//默认起点
             Point p1 = new Point(0, 0);
             Point p2 = new Point(0, 0);
             Point curPoint = new Point(0, 0);
@@ -346,9 +377,17 @@ namespace Astar
             byte[] sendBuff = new byte[4];
             string str;
 
-            p = new Pen(Color.Red, 1);
+            p = new Pen(Color.Blue, 1);
             g = pictureBox1.CreateGraphics();
-
+            if (rplidar.IsOpen == true)
+            {
+                StartScan();
+            }
+            else
+            {
+                MessageBox.Show("激光雷达串口没打开");
+                return;
+            }
             nav = new Navigate(pgmFile.map, startPoint, goalPoint, pgmFile.costMap);
             if(nav.GetPath()==true)
             {
@@ -357,9 +396,11 @@ namespace Astar
 
                 while (keyPoints.Count != 0)
                 {
+                  
                     tarPoint = keyPoints.Pop();
                     while (Math.Abs(p2.X - tarPoint.X) > 1 || Math.Abs(p2.Y - tarPoint.Y) > 1)
                     {
+                        HandleLaserData();
                         orientation = CalcRad(p1, tarPoint);
                         errAngle = orientation - angle;
                         //需要转的角度超过180度，就从反方向转
@@ -369,8 +410,8 @@ namespace Astar
                             errAngle = errAngle + Math.PI * 2;
 
                         omiga = (int)(errAngle * 3000);
-                        calcResult_sw.WriteLine("angle={0}\torientation={1}\tomiga={2}", angle, orientation, omiga);
-                        // omiga = 0;
+                        calcResult_sw.WriteLine("angle={0}\torientation={1}\tomiga={2}\ttime={3}", angle, orientation, omiga,System.DateTime.Now.Millisecond.ToString());
+                       
                         if (serialPort.IsOpen)
                         {
                             //帧头
@@ -409,7 +450,6 @@ namespace Astar
                             nav = new Navigate(pgmFile.map, p2, goalPoint, pgmFile.costMap);
                             if (nav.GetPath()==true)
                             {
-
                                 keyPoints = nav.keyPoints;
                                 p1 = keyPoints.Pop();
                                 tarPoint = keyPoints.Pop();
@@ -530,6 +570,7 @@ namespace Astar
                 resultRad = Math.PI * 2 - Math.Acos(disX / distance);
             return resultRad;
         }
+
         void Delay(int milliSecond)
         {
             int start = Environment.TickCount;
@@ -551,10 +592,14 @@ namespace Astar
         {
             calcResult_sw.Close();
             calcResult_fs.Close();
+
             keyPoints_sw.Close();
             keyPoints_fs.Close();
+
+            laserData_sw.Close();
+            laserData_fs.Close();
         }
-        private void btnStartMotor_Click()
+        private void StartMotor()
         {
             byte[] buff = new byte[6];
             buff[0] = 0xA5;
@@ -566,7 +611,7 @@ namespace Astar
             rplidar.Write(buff, 0, 6);
         }
 
-        private void btnStartScan_Click()
+        private void StartScan()
         {
             byte[] buff = new byte[2];
             buff[0] = 0xA5;
@@ -574,7 +619,7 @@ namespace Astar
             rplidar.Write(buff, 0, 2);
         }
 
-        private void btnGetInfo_Click()
+        private void GetInfo()
         {
             byte[] buff = new byte[2];
             buff[0] = 0xA5;
@@ -582,7 +627,7 @@ namespace Astar
             rplidar.Write(buff, 0, 2);
         }
 
-        private void btnStopMotor_Click()
+        private void StopMotor()
         {
             byte[] buff = new byte[6];
             buff[0] = 0xA5;
@@ -594,7 +639,7 @@ namespace Astar
             rplidar.Write(buff, 0, 6);
         }
 
-        private void btnStopScan_Click()
+        private void StopScan()
         {
             byte[] buff = new byte[2];
             buff[0] = 0xA5;
@@ -602,6 +647,133 @@ namespace Astar
             rplidar.Write(buff, 0, 2);
         }
 
+        private void HandleLaserData()
+        {
+            Point curPoint = new Point();
+            Point obsPoint = new Point();
+
+            curPoint.X = (int)Math.Round(coorX / 0.05, 0) + startPoint.X;
+            curPoint.Y = (int)Math.Round(coorY / 0.05, 0) + startPoint.Y;
+            for (int i = 0; i < measurementData.Count; i++)
+            {
+                laserData_sw.WriteLine("theta:{0}\tdistance{1}", measurementData[i].angle_q6, measurementData[i].distance_q2);
+                float xita = angle + measurementData[i].angle_q6 - (float)Math.PI;
+                int X = curPoint.X - (int)(measurementData[i].distance_q2 * Math.Cos(xita) / 50);
+                int Y = curPoint.Y - (int)(measurementData[i].distance_q2 * Math.Sin(xita) / 50);
+                obsPoint.X = X;
+                obsPoint.Y = Y;
+                UpdateMap(curPoint, obsPoint);
+            }
+        }
+        public void UpdateMap(Point p1, Point p2)
+        {
+            int size = 0;
+            int up = 0;
+            int down = 0;
+            double result = 0;
+            int inflatNum = 3;
+           // g = pictureBox1.CreateGraphics();
+            SolidBrush redBrush = new SolidBrush(Color.Red);
+            SolidBrush grayBrush = new SolidBrush(Color.White);
+
+           // Console.WriteLine("lalalalallal");
+            //p1p2垂直于x轴
+            if (p1.X == p2.X)
+            {
+                up = Math.Max(p1.Y, p2.Y);
+                down = Math.Min(p1.Y, p2.Y);
+                size = up - down;
+                for (int step = 1; step < size; step++)
+                {
+                    nav.map.mapdata[(down + step) * pgmFile.map.width + p1.X] = 254;
+                    pgmFile.map.mapdata[(down + step) * pgmFile.map.width + p1.X] = 254;
+                    g.FillRectangle(grayBrush, p1.X, (down + step), 1, 1);
+                }
+            }
+            //p1p2垂直于y轴
+            else if (p1.Y == p2.Y)
+            {
+                up = Math.Max(p1.X, p2.X);
+                down = Math.Min(p1.X, p2.X);
+                size = up - down;
+                for (int step = 1; step < size; step++)
+                {
+                    nav.map.mapdata[p1.Y * pgmFile.map.width + down + step] = 254;
+                    pgmFile.map.mapdata[p1.Y * pgmFile.map.width + down + step] = 254;
+                    g.FillRectangle(grayBrush, (down + step), p1.Y, 1, 1);
+                }
+            }
+            else
+            {
+                Func func = new Func(p1, p2);
+                if (func.type == 0)
+                {
+                    up = Math.Max(p1.X, p2.X);
+                    down = Math.Min(p1.X, p2.X);
+                    size = up - down;
+                    for (int step = 1; step < size; step++)
+                    {
+                        result = func.CalcResult(down + step);
+                        nav.map.mapdata[(int)(result) * pgmFile.map.width + down + step] = 254;
+                        pgmFile.map.mapdata[(int)(result) * pgmFile.map.width + down + step] = 254;
+                        g.FillRectangle(grayBrush, (down + step),(int)result , 1, 1);
+                    }
+                }
+                else
+                {
+                    up = Math.Max(p1.Y, p2.Y);
+                    down = Math.Min(p1.Y, p2.Y);
+                    size = up - down;
+                    for (int step = 0; step < size; step++)
+                    {
+                        result = func.CalcResult(down + step);
+                        nav.map.mapdata[(down + step) * pgmFile.map.width + (int)result] = 254;
+                        pgmFile.map.mapdata[(down + step) * pgmFile.map.width + (int)result] = 254;
+                        g.FillRectangle(grayBrush, (int)result, (down + step), 1, 1);
+                    }
+           
+                }
+            }
+            g.FillRectangle(redBrush, p2.X - inflatNum, p2.Y - inflatNum, inflatNum * 2, inflatNum * 2);
+            for (int i = 0; i < inflatNum * 2 + 1; i++)
+            {
+                for (int j = 0; j < inflatNum * 2 + 1; j++)
+                {
+                    nav.map.mapdata[(p2.Y - inflatNum + i) * pgmFile.map.width + (p2.X - inflatNum + j)] = 0;
+                    pgmFile.map.mapdata[(p2.Y - inflatNum + i) * pgmFile.map.width + (p2.X - inflatNum + j)] = 0;
+                }
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            int curTime = 0;
+            int preTime = 0;
+            Point sdjfl=new Point(240,340);
+            nav = new Navigate(pgmFile.map, startPoint, sdjfl, pgmFile.costMap);
+            if (rplidar.IsOpen == true)
+            {
+
+                StartScan();
+            }
+            else
+            {
+                MessageBox.Show("激光雷达串口没打开");
+                return;
+            }
+            while(true)
+            {
+                curTime = System.DateTime.Now.Millisecond;
+                HandleLaserData();
+                preTime = curTime;
+                curTime = System.DateTime.Now.Millisecond;
+                if (curTime < preTime)
+                    curTime += 1000;
+
+                Console.WriteLine("{0}", curTime-preTime);
+                Delay(100);
+            }
+        }
     }
 
 

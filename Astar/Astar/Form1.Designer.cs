@@ -42,6 +42,7 @@
             this.serialPort = new System.IO.Ports.SerialPort(this.components);
             this.cbSerialName = new System.Windows.Forms.ComboBox();
             this.btnConnect = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -131,7 +132,7 @@
             this.btnTest.Name = "btnTest";
             this.btnTest.Size = new System.Drawing.Size(106, 37);
             this.btnTest.TabIndex = 7;
-            this.btnTest.Text = "test";
+            this.btnTest.Text = "开始导航";
             this.btnTest.UseVisualStyleBackColor = true;
             this.btnTest.Click += new System.EventHandler(this.btnTest_Click);
             // 
@@ -164,11 +165,23 @@
             this.btnConnect.UseVisualStyleBackColor = true;
             this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
             // 
+            // button1
+            // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.button1.Location = new System.Drawing.Point(45, 436);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 10;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(672, 509);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.cbSerialName);
             this.Controls.Add(this.btnTest);
@@ -205,6 +218,7 @@
         private System.IO.Ports.SerialPort serialPort;
         private System.Windows.Forms.ComboBox cbSerialName;
         private System.Windows.Forms.Button btnConnect;
+        private System.Windows.Forms.Button button1;
     }
 }
 
