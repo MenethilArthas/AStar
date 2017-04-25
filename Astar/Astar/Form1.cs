@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using BinHeap;
+using System.IO.Ports;
 using System.IO;
 namespace Astar
 {
@@ -21,73 +22,64 @@ namespace Astar
         public Graphics g ;
         public Pen p;
         public Stack<Point> keyPoints;
-        navigate nav;
-        MAP map;
-        private int[] costMap;
+        Navigate nav;
+        PgmFile pgmFile;
+        FileStream keyPoints_fs;
+        FileStream calcResult_fs;
+        StreamWriter keyPoints_sw;
+        StreamWriter calcResult_sw; 
+        
         int obsWidth = 5;
         int obsHeight = 5;
-        int obsNum = 50;
-        int obsCost = 200;
+       // int obsNum = 50;
+
         public Form1()
         {
             InitializeComponent();           
         }
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+            string logFIlePath;
+            //创建日志文件
+            logFIlePath = Environment.CurrentDirectory.ToString() + "\\KeyPoints.log";
+            keyPoints_fs = new FileStream(logFIlePath, System.IO.FileMode.Append);
+            keyPoints_sw = new StreamWriter(keyPoints_fs, System.Text.Encoding.Default);
+            keyPoints_sw.WriteLine(DateTime.Now.ToString());
+
+            logFIlePath = Environment.CurrentDirectory.ToString() + "\\CalcResult.log";
+            calcResult_fs = new FileStream(logFIlePath, System.IO.FileMode.Append);
+            calcResult_sw = new StreamWriter(calcResult_fs, System.Text.Encoding.Default);
+            calcResult_sw.WriteLine(DateTime.Now.ToString());
+            //读取pgm格式地图
             string path = "C:\\Users\\Arthas\\Desktop\\毕业设计\\AStar\\AStar\\AStar\\mymap.pgm";
-            if (File.Exists(path))
+            pgmFile = new PgmFile(path);
+            pgmFile.Read_FileData();
+            //重绘窗口
+            float scaleX = (float)pgmFile.map.width / this.pictureBox1.Width;
+            float scaleY = (float)pgmFile.map.height / this.pictureBox1.Height;
+            int disX = this.Width - this.pictureBox1.Width;
+            int disY = this.Height - this.pictureBox1.Height;
+            this.pictureBox1.Width = pgmFile.map.width;
+            this.pictureBox1.Height = pgmFile.map.height;
+            this.Width = this.pictureBox1.Width + disX;//(int)(this.Width * scaleX);
+            this.Height = this.pictureBox1.Height+disY;//(int)(this.Height * scaleY);
+            //获取串口号
+            string[] serialPortName = SerialPort.GetPortNames();
+            if (serialPortName.Length==0||(serialPortName.Length==1&&serialPortName[0]=="COM3"))
+                MessageBox.Show("木有串口");
+            else
             {
-                FileStream fs = new FileStream(path, FileMode.Open);
-                StreamReader sr = new StreamReader(fs, Encoding.UTF7);
-                string str = string.Empty;
-                str = sr.ReadLine();//p5
-                str = sr.ReadLine();//comment context
-                str = sr.ReadLine();//width height
-                string[] size = str.Split(' ');
-                int width = Convert.ToInt32(size[0]);
-                int height = Convert.ToInt32(size[1]);
-
-                map.width = width;
-                map.height = height;
-
-                costMap = new int[width * height];
-                float scaleX = (float)width / this.pictureBox1.Width;
-                float scaleY = (float)height / this.pictureBox1.Height;
-                this.pictureBox1.Width = width;
-                this.pictureBox1.Height = height;
-                this.Width = (int)(this.Width * scaleX);
-                this.Height = (int)(this.Height * scaleY);
-                str = sr.ReadLine();//255
-
-                str = sr.ReadLine();
-                //str = sr.ReadLine();
-                map.mapdata = new byte[width * height];
-                map.type=new byte[width*height];
-                for (int i = 0; i < height; i++)
+                foreach(string s in serialPortName)
                 {
-                    for (int j = 0; j < width; j++)
-                    {
-                        map.mapdata[i * width + j] = (byte)str[i * width + j];
-                        if (map.mapdata[i * width + j] == 0)
-                        {
-                            map.type[i * width + j] = 1;
-                            int qunima = 5;
-                            for(int k=i-qunima;k<=i+qunima;k++)
-                            {
-                                for (int w = -qunima; w <= qunima;w++ )
-                                {
-                                    costMap[k * width + j + w] = obsCost;
-                                }
-  
-                            }
-                        }
-                           
-                        else
-                            map.type[i * width + j] = 0;
-                    }
+                    if(s!="COM3")
+                        cbSerialName.Items.Add(s);
                 }
+                cbSerialName.SelectedIndex = 0;
             }
+            //订阅委托
+            serialPort.DataReceived += new SerialDataReceivedEventHandler(Serial_DataReceived);
+            rplidar.DataReceived += new SerialDataReceivedEventHandler(Rplidar_DataReceived);
+            rplidar.Open();
         }
 
         private void btnImportMap_Click(object sender, EventArgs e)
@@ -102,10 +94,10 @@ namespace Astar
                 for (int j = 0; j < this.pictureBox1.Width; j++)
                 {
 
-                    if (map.mapdata[i * this.pictureBox1.Width + j] == 254)
+                    if (pgmFile.map.mapdata[i * this.pictureBox1.Width + j] == 254)
                         g.FillRectangle(whiteBrush, j, i, 1, 1);
 
-                    else if (map.mapdata[i * this.pictureBox1.Width + j] == 0)
+                    else if (pgmFile.map.mapdata[i * this.pictureBox1.Width + j] == 0)
                         g.FillRectangle(blackBrush, j, i, 1, 1);
                 }
             }
@@ -131,20 +123,28 @@ namespace Astar
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             int row = 0;
             int col = 0;
-            for(int i=0;i<map.width*map.height;i++)
+            int qunima = 5;
+            for (int i = 0; i < pgmFile.map.width * pgmFile.map.height; i++)
             {
-                if(map.mapdata[i]==0&&map.type[i]==1)
+                if (pgmFile.map.mapdata[i] == 0 && pgmFile.map.type[i] == 1)
                 {
-                    row = i % map.width-obsWidth;
-                    col = i / map.width-obsHeight;
+                    row = i % pgmFile.map.width - obsWidth;
+                    col = i / pgmFile.map.width - obsHeight;
                     g.FillRectangle(brush, row, col, obsWidth*2, obsHeight*2);
-
                     g.FillRectangle(blackBrush, row+obsWidth, col+obsHeight, 1, 1);
                     for (int j = col; j < col+obsHeight*2; j++)
                     {
                         for (int k = row; k < row+obsWidth*2; k++)
                         {
-                            map.mapdata[j * map.width + k] = 0;
+                            pgmFile.map.mapdata[j * pgmFile.map.width + k] = 0;
+                            //设置代价地图
+                            for (int q = j - qunima; q <= j + qunima; q++)
+                            {
+                                for (int w = -qunima; w <= qunima; w++)
+                                {
+                                    pgmFile.costMap[q * pgmFile.map.width + k + w] = 100;
+                                }
+                            }
                         }
                     }
                 }
@@ -156,77 +156,309 @@ namespace Astar
           
             btnNavgate.Enabled = false;
 
-            p = new Pen(Color.Red, 1);
+            p = new Pen(Color.Blue, 1);
             g = pictureBox1.CreateGraphics();
 
             Point childPoint = new Point(0, 0);
             Point parentPoint = new Point(0, 0);
-            navigate nav = new navigate(map, startPoint, goalPoint, costMap);
 
-            if(nav.GetPath()==true)
+            startPoint = new Point(310, 310);//默认起点
+            Navigate tempNav = new Navigate(pgmFile.map, startPoint, goalPoint, pgmFile.costMap);
+
+            if (tempNav.GetPath() == true)
             {
-                keyPoints = nav.keyPoints;
-                //childPoint = keyPoints.Pop();//startPoint
-                
-                //while(keyPoints.Count!=0)
-                //{
-                //    parentPoint = keyPoints.Pop();
-                //    g.DrawLine(p, childPoint, parentPoint);
-                //    childPoint = parentPoint;
-                //}                
+                keyPoints = tempNav.keyPoints;
+                childPoint = keyPoints.Pop();//startPoint
+               
+                while (keyPoints.Count != 0)
+                {
+                    keyPoints_sw.WriteLine("x:{0}\ty:{1}", childPoint.X, childPoint.Y);
+                    parentPoint = keyPoints.Pop();
+                    g.DrawLine(p, childPoint, parentPoint);
+                    childPoint = parentPoint;
+                }                
             }
         }
 
+        float coorX;
+        float coorY;
+        float angle;
+        
+        List<byte> buffer=new List<byte>(4096);
+        byte[] bytesToSingle = new byte[22];
+        public void Serial_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            int length = serialPort.BytesToRead;
+            byte[] Buff = new byte[length];
+            serialPort.Read(Buff, 0, length);
+
+            buffer.AddRange(Buff);
+            while (buffer.Count >= 2)
+            {
+                if (buffer[0] == 'A' && buffer[1] == 'C')
+                {
+                    if (buffer.Count < 22)
+                        break;
+                    else
+                    {
+                        buffer.CopyTo(0, bytesToSingle, 0, 22);
+                        coorX = BitConverter.ToSingle(bytesToSingle, 2);
+                        coorY = -BitConverter.ToSingle(bytesToSingle, 6);
+                        angle = (float)Math.PI - BitConverter.ToSingle(bytesToSingle, 10);
+                        //angle = BitConverter.ToSingle(bytesToSingle, 10);
+                       
+                        Console.WriteLine("x:{0}\ty:{1}\tangle:{2}\t", coorX, coorY, angle);
+                        buffer.RemoveRange(0, 22);
+                    }
+                }
+                else
+                {
+                    buffer.RemoveAt(0);
+                }
+
+            }
+           // serialPort.DiscardInBuffer();
+
+        }
+
+        List<byte> rplidar_buffer = new List<byte>(1024);
+        byte messageType = 0;//0代表起始应答报文，1代表数据应答报文
+        byte cmdType = 0;//0x04代表设备信息获取命令，0x81代表开始扫描采样命令
+        int majorModel = 0;
+        byte subModel = 0;
+        byte firmwareVer_minor = 0;
+        byte firmwareVer_major = 0;
+        byte hardware = 0;
+        byte[] serialNumber = new byte[32];
+        byte quality = 0;
+        UInt16 angle_q6 = 0;
+        UInt16 distance_q2 = 0;
+        byte[] angle_q6_buf = new byte[2];
+        byte[] distance_q2_buf = new byte[2];
+        void Rplidar_DataReceived(object obj, SerialDataReceivedEventArgs e)
+        {
+            int dataSize = 0;
+            int length = rplidar.BytesToRead;
+            byte[] readBuf = new byte[length];
+            rplidar.Read(readBuf, 0, length);
+            rplidar_buffer.AddRange(readBuf);
+
+            if (messageType == 0)
+            {
+                while (rplidar_buffer.Count > 1)
+                {
+                    //检验帧头
+                    if (rplidar_buffer[0] == 0xA5 && rplidar_buffer[1] == 0x5A)
+                    {
+                        //检查数据长度
+                        if (rplidar_buffer.Count >= 7)
+                        {
+                            messageType = 1;
+                            dataSize = rplidar_buffer[2];
+                            cmdType = rplidar_buffer[6];
+                            rplidar_buffer.RemoveRange(0, 7);
+                            if (cmdType == 0x04)
+                            {
+                                subModel = (byte)(rplidar_buffer[0] & 0x0f);
+                                majorModel = (rplidar_buffer[0] & 0xf0) >> 4;
+                                Console.WriteLine("Ver:{0}.{1}", majorModel, subModel);
+                                firmwareVer_minor = rplidar_buffer[1];
+                                firmwareVer_major = rplidar_buffer[2];
+                                Console.WriteLine("firmware ver:{0}.{1}", firmwareVer_major, firmwareVer_minor);
+                                hardware = rplidar_buffer[3];
+                                Console.WriteLine("hardware ver:{0}", hardware);
+                                Console.Write("S/N:");
+                                for (int i = 0; i < 16; i++)
+                                {
+                                    serialNumber[i * 2] = (byte)(rplidar_buffer[4 + i] & 0x0f);
+                                    serialNumber[i * 2 + 1] = (byte)((rplidar_buffer[4 + i] & 0xf0) >> 4);
+                                    Console.Write("{0:X}{1:X}", serialNumber[i * 2 + 1], serialNumber[i * 2]);
+                                    messageType = 0;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        rplidar_buffer.RemoveAt(0);
+                    }
+                }
+            }
+            else
+            {
+                if (cmdType == 0x81)
+                {
+                    while (rplidar_buffer.Count > 1)
+                    {
+                        if ((rplidar_buffer[0] & 0x01) + ((rplidar_buffer[0] & 0x02) >> 1) == 1)
+                        {
+                            if (rplidar_buffer.Count >= 5)
+                            {
+                                quality = (byte)(rplidar_buffer[0] & 0xfc);
+                                if (quality != 0)
+                                {
+                                    angle_q6_buf[0] = rplidar_buffer[1];
+                                    angle_q6_buf[1] = rplidar_buffer[2];
+                                    angle_q6 = (UInt16)(BitConverter.ToUInt16(angle_q6_buf, 0) >> 1);
+                                    distance_q2_buf[0] = rplidar_buffer[3];
+                                    distance_q2_buf[1] = rplidar_buffer[4];
+                                    distance_q2 = BitConverter.ToUInt16(distance_q2_buf, 0);
+                                    //Console.WriteLine("theta:{0}\tdistance:{1}\tquality:{2}", angle_q6 / 64.0f, distance_q2 / 4.0f, quality);
+                                    //sw.WriteLine("theta:{0}\tdistance:{1}\tquality:{2}", angle_q6 / 64.0f, distance_q2 / 4.0f, quality);
+                                }
+                                rplidar_buffer.RemoveRange(0, 5);
+
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            rplidar_buffer.RemoveAt(0);
+                        }
+                    }
+                }
+            }
+
+        }
         private void btnTest_Click(object sender, EventArgs e)
         {
             btnTest.Enabled = false;
+            startPoint = new Point(310, 310);//默认起点
             Point p1 = new Point(0, 0);
             Point p2 = new Point(0, 0);
             Point curPoint = new Point(0, 0);
             Point tarPoint = new Point(0, 0);
-            int interval = 1;
-            int vel = 2;
-            double deltaX = 0.0;
-            double deltaY = 0.0;
+           // double interval = 0.01;
+            int vel = 200;//速度200mm/s
+            int omiga = 0;
+            //double deltaX = 0.0;
+            //double deltaY = 0.0;
             double orientation = 0.0;
+            double errAngle = 0.0;
+            double resolution = 0.05;
+            byte[] sendBuff = new byte[4];
+            string str;
 
             p = new Pen(Color.Red, 1);
             g = pictureBox1.CreateGraphics();
-            nav = new navigate(map, startPoint, goalPoint, costMap);
-            nav.GetPath();
-            keyPoints = nav.keyPoints;
-            p1 = keyPoints.Pop();//startPoint
-            while (keyPoints.Count != 0)
+
+            nav = new Navigate(pgmFile.map, startPoint, goalPoint, pgmFile.costMap);
+            if(nav.GetPath()==true)
             {
-                tarPoint = keyPoints.Pop();         
-                while(Math.Abs(p2.X-tarPoint.X)>1||Math.Abs(p2.Y-tarPoint.Y)>1)
+                keyPoints = nav.keyPoints;
+                p1 = keyPoints.Pop();//startPoint
+
+                while (keyPoints.Count != 0)
                 {
-                    orientation = CalcRad(p1, tarPoint);
-                    deltaX = vel * interval * Math.Cos(orientation);
-                    deltaY = vel * interval * Math.Sin(orientation);
-                    p2.X = p1.X + (int)Math.Round(deltaX,0);
-                    p2.Y = p1.Y + (int)Math.Round(deltaY, 0);
-                    g.DrawLine(p, p1, p2);
-                    //System.Threading.Thread.Sleep(100);
-                    Delay(100);
-                    if(nav.IsExistObs(p2,tarPoint)==true)
+                    tarPoint = keyPoints.Pop();
+                    while (Math.Abs(p2.X - tarPoint.X) > 1 || Math.Abs(p2.Y - tarPoint.Y) > 1)
                     {
-                        nav = new navigate(map, p2, goalPoint, costMap);
-                        nav.GetPath();
-                        keyPoints = nav.keyPoints;
-                        p1 = keyPoints.Pop();
-                        tarPoint = keyPoints.Pop();
+                        orientation = CalcRad(p1, tarPoint);
+                        errAngle = orientation - angle;
+                        //需要转的角度超过180度，就从反方向转
+                        if (errAngle > Math.PI)
+                            errAngle = errAngle - Math.PI * 2;
+                        else if (errAngle < -Math.PI)
+                            errAngle = errAngle + Math.PI * 2;
+
+                        omiga = (int)(errAngle * 3000);
+                        calcResult_sw.WriteLine("angle={0}\torientation={1}\tomiga={2}", angle, orientation, omiga);
+                        // omiga = 0;
+                        if (serialPort.IsOpen)
+                        {
+                            //帧头
+                            str = "OL";
+                            serialPort.Write(str);
+                            //线速度
+                            sendBuff[0] = (byte)(vel);
+                            sendBuff[1] = (byte)(vel >> 8);
+                            sendBuff[2] = (byte)(vel >> 16);
+                            sendBuff[3] = (byte)(vel >> 24);
+                            serialPort.Write(sendBuff, 0, 4);
+                            //角速度
+                            sendBuff[0] = (byte)(omiga);
+                            sendBuff[1] = (byte)(omiga >> 8);
+                            sendBuff[2] = (byte)(omiga >> 16);
+                            sendBuff[3] = (byte)(omiga >> 24);
+                            serialPort.Write(sendBuff, 0, 4);
+                        }
+                        else
+                        {
+                            MessageBox.Show("串口没有打开");
+                            btnTest.Enabled = true;
+                            return;
+                        }
+                        Delay(100);
+                        p2.X = startPoint.X + (int)Math.Round(coorX / resolution, 0);
+                        p2.Y = startPoint.Y + (int)Math.Round(coorY / resolution, 0);
+                        //deltaX = vel * interval * Math.Cos(orientation);
+                        //deltaY = vel * interval * Math.Sin(orientation);
+                        //p2.X = p1.X + (int)Math.Round(deltaX, 0);
+                        //p2.Y = p1.Y + (int)Math.Round(deltaY, 0);
+                        g.DrawLine(p, p1, p2);
+
+                        if (nav.IsExistObs(p2, tarPoint) == true)
+                        {
+                            nav = new Navigate(pgmFile.map, p2, goalPoint, pgmFile.costMap);
+                            if (nav.GetPath()==true)
+                            {
+
+                                keyPoints = nav.keyPoints;
+                                p1 = keyPoints.Pop();
+                                tarPoint = keyPoints.Pop();
+                            }
+                            else
+                            {
+                                MessageBox.Show("error!");
+                            }
+                        }
+                        else
+                        {
+                            p1 = p2;
+                        }
                     }
-                    else
-                    {
-                        p1 = p2;
-                    }
+                    curPoint = tarPoint;
+                    //g.DrawLine(p, childPoint, parentPoint);                
                 }
-                curPoint = tarPoint;
-                //g.DrawLine(p, childPoint, parentPoint);
-                
+                vel = 0;
+                omiga = 0;
+                if (serialPort.IsOpen)
+                {
+                    //帧头
+                    str = "OL";
+                    serialPort.Write(str);
+                    //线速度
+                    sendBuff[0] = (byte)(vel);
+                    sendBuff[1] = (byte)(vel >> 8);
+                    sendBuff[2] = (byte)(vel >> 16);
+                    sendBuff[3] = (byte)(vel >> 24);
+                    serialPort.Write(sendBuff, 0, 4);
+                    //角速度
+                    sendBuff[0] = (byte)(omiga);
+                    sendBuff[1] = (byte)(omiga >> 8);
+                    sendBuff[2] = (byte)(omiga >> 16);
+                    sendBuff[3] = (byte)(omiga >> 24);
+                    serialPort.Write(sendBuff, 0, 4);
+                }
+                else
+                {
+                    MessageBox.Show("串口没有打开");
+                    btnTest.Enabled = true;
+                    return;
+                }
             }
-           
+            else
+            {
+                MessageBox.Show("error");
+            }
+            btnTest.Enabled = true;
         }
 
         private void btnClearPath_Click(object sender, EventArgs e)
@@ -240,15 +472,15 @@ namespace Astar
                 for (int j = 0; j < this.pictureBox1.Width; j++)
                 {
 
-                    if (map.mapdata[i * this.pictureBox1.Width + j] == 254)
+                    if (pgmFile.map.mapdata[i * this.pictureBox1.Width + j] == 254)
                         g.FillRectangle(whiteBrush, j, i, 1, 1);
 
-                    else if (map.mapdata[i * this.pictureBox1.Width + j] == 0)
+                    else if (pgmFile.map.mapdata[i * this.pictureBox1.Width + j] == 0)
                         g.FillRectangle(blackBrush, j, i, 1, 1);
                 }
             }
             btnNavgate.Enabled = true;
-            btnStartPoint.Enabled = true;
+           // btnStartPoint.Enabled = true;
             btnEndPoint.Enabled = true;
             btnTest.Enabled = true;
         }
@@ -279,12 +511,13 @@ namespace Astar
                 {
                     for (int j = x; j < x + dynObsNum * 2; j++)
                     {
-                        nav.map.mapdata[i * map.width + j] = 0;
-                        map.mapdata[i * map.width + j] = 0;
+                        nav.map.mapdata[i * pgmFile.map.width + j] = 0;
+                        pgmFile.map.mapdata[i * pgmFile.map.width + j] = 0;
                     }
                 }
             }
         }
+        /*返回0~2*pi*/
         double CalcRad(Point p1, Point p2)
         {
             double disX = p2.X - p1.X;
@@ -294,7 +527,7 @@ namespace Astar
             if (disY > 0)
                 resultRad = Math.Acos(disX / distance);
             else
-                resultRad = -Math.Acos(disX / distance);
+                resultRad = Math.PI * 2 - Math.Acos(disX / distance);
             return resultRad;
         }
         void Delay(int milliSecond)
@@ -306,6 +539,68 @@ namespace Astar
             }
         }
 
+        private void btnConnect_Click(object sender, EventArgs e)
+        {
+            btnConnect.Enabled = false;
+            serialPort.BaudRate = 115200;
+            serialPort.PortName = cbSerialName.SelectedItem.ToString();
+            serialPort.Open();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            calcResult_sw.Close();
+            calcResult_fs.Close();
+            keyPoints_sw.Close();
+            keyPoints_fs.Close();
+        }
+        private void btnStartMotor_Click()
+        {
+            byte[] buff = new byte[6];
+            buff[0] = 0xA5;
+            buff[1] = 0xF0;
+            buff[2] = 0x02;
+            buff[3] = 0x94;
+            buff[4] = 0x02;
+            buff[5] = 0xc1;
+            rplidar.Write(buff, 0, 6);
+        }
+
+        private void btnStartScan_Click()
+        {
+            byte[] buff = new byte[2];
+            buff[0] = 0xA5;
+            buff[1] = 0x20;
+            rplidar.Write(buff, 0, 2);
+        }
+
+        private void btnGetInfo_Click()
+        {
+            byte[] buff = new byte[2];
+            buff[0] = 0xA5;
+            buff[1] = 0x50;
+            rplidar.Write(buff, 0, 2);
+        }
+
+        private void btnStopMotor_Click()
+        {
+            byte[] buff = new byte[6];
+            buff[0] = 0xA5;
+            buff[1] = 0xF0;
+            buff[2] = 0x02;
+            buff[3] = 0x00;
+            buff[4] = 0x00;
+            buff[5] = 0x57;
+            rplidar.Write(buff, 0, 6);
+        }
+
+        private void btnStopScan_Click()
+        {
+            byte[] buff = new byte[2];
+            buff[0] = 0xA5;
+            buff[1] = 0x25;
+            rplidar.Write(buff, 0, 2);
+        }
 
     }
 

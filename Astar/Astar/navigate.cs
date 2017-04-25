@@ -7,7 +7,7 @@ using System.Drawing;
 using BinHeap;
 namespace Astar
 {
-    class navigate
+    class Navigate
     {
         public MAP map;
         public int[] parentList;
@@ -17,7 +17,7 @@ namespace Astar
         private int[] costMap;
         public Stack<Point> keyPoints;
           
-        public navigate(MAP _map,Point _startPoint,Point _goalPoint,int [] _test)
+        public Navigate(MAP _map,Point _startPoint,Point _goalPoint,int [] _test)
         {
             map = _map;
             parentList = new int[map.width*map.height];
@@ -53,7 +53,7 @@ namespace Astar
             int[] closed = new int[map.width*map.height];
             for (int i = 0; i < map.width * map.height; i++)
                 closed[i] = 0;
-            while(open.Size!=0)
+            while(open.CurPos!=0)
             {
                 popNode = open.PopMinItem();
                 //Console.WriteLine("{0}...{1}...{2}", popNode.point.X, popNode.point.Y, popNode.hValue);

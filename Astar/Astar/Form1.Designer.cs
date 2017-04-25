@@ -38,6 +38,10 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.btnImportMap = new System.Windows.Forms.Button();
             this.btnTest = new System.Windows.Forms.Button();
+            this.rplidar = new System.IO.Ports.SerialPort(this.components);
+            this.serialPort = new System.IO.Ports.SerialPort(this.components);
+            this.cbSerialName = new System.Windows.Forms.ComboBox();
+            this.btnConnect = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -55,7 +59,8 @@
             // btnStartPoint
             // 
             this.btnStartPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnStartPoint.Location = new System.Drawing.Point(603, 77);
+            this.btnStartPoint.Enabled = false;
+            this.btnStartPoint.Location = new System.Drawing.Point(536, 14);
             this.btnStartPoint.Name = "btnStartPoint";
             this.btnStartPoint.Size = new System.Drawing.Size(106, 37);
             this.btnStartPoint.TabIndex = 1;
@@ -66,7 +71,7 @@
             // btnEndPoint
             // 
             this.btnEndPoint.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnEndPoint.Location = new System.Drawing.Point(603, 150);
+            this.btnEndPoint.Location = new System.Drawing.Point(536, 87);
             this.btnEndPoint.Name = "btnEndPoint";
             this.btnEndPoint.Size = new System.Drawing.Size(106, 37);
             this.btnEndPoint.TabIndex = 2;
@@ -77,7 +82,7 @@
             // btnNavgate
             // 
             this.btnNavgate.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnNavgate.Location = new System.Drawing.Point(603, 369);
+            this.btnNavgate.Location = new System.Drawing.Point(536, 306);
             this.btnNavgate.Name = "btnNavgate";
             this.btnNavgate.Size = new System.Drawing.Size(106, 37);
             this.btnNavgate.TabIndex = 3;
@@ -89,7 +94,7 @@
             // 
             this.btnClearPath.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.btnClearPath.AutoSize = true;
-            this.btnClearPath.Location = new System.Drawing.Point(603, 442);
+            this.btnClearPath.Location = new System.Drawing.Point(534, 379);
             this.btnClearPath.Name = "btnClearPath";
             this.btnClearPath.Size = new System.Drawing.Size(106, 37);
             this.btnClearPath.TabIndex = 4;
@@ -100,7 +105,7 @@
             // btnCreateObs
             // 
             this.btnCreateObs.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnCreateObs.Location = new System.Drawing.Point(603, 296);
+            this.btnCreateObs.Location = new System.Drawing.Point(536, 233);
             this.btnCreateObs.Name = "btnCreateObs";
             this.btnCreateObs.Size = new System.Drawing.Size(106, 37);
             this.btnCreateObs.TabIndex = 5;
@@ -111,7 +116,7 @@
             // btnImportMap
             // 
             this.btnImportMap.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnImportMap.Location = new System.Drawing.Point(603, 223);
+            this.btnImportMap.Location = new System.Drawing.Point(536, 160);
             this.btnImportMap.Name = "btnImportMap";
             this.btnImportMap.Size = new System.Drawing.Size(106, 37);
             this.btnImportMap.TabIndex = 6;
@@ -122,19 +127,50 @@
             // btnTest
             // 
             this.btnTest.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.btnTest.Location = new System.Drawing.Point(463, 480);
+            this.btnTest.Location = new System.Drawing.Point(536, 441);
             this.btnTest.Name = "btnTest";
-            this.btnTest.Size = new System.Drawing.Size(75, 23);
+            this.btnTest.Size = new System.Drawing.Size(106, 37);
             this.btnTest.TabIndex = 7;
             this.btnTest.Text = "test";
             this.btnTest.UseVisualStyleBackColor = true;
             this.btnTest.Click += new System.EventHandler(this.btnTest_Click);
             // 
+            // rplidar
+            // 
+            this.rplidar.BaudRate = 115200;
+            this.rplidar.PortName = "COM3";
+            // 
+            // serialPort
+            // 
+            this.serialPort.BaudRate = 115200;
+            // 
+            // cbSerialName
+            // 
+            this.cbSerialName.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.cbSerialName.FormattingEnabled = true;
+            this.cbSerialName.Location = new System.Drawing.Point(167, 442);
+            this.cbSerialName.Name = "cbSerialName";
+            this.cbSerialName.Size = new System.Drawing.Size(96, 23);
+            this.cbSerialName.TabIndex = 8;
+            // 
+            // btnConnect
+            // 
+            this.btnConnect.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.btnConnect.Location = new System.Drawing.Point(307, 436);
+            this.btnConnect.Name = "btnConnect";
+            this.btnConnect.Size = new System.Drawing.Size(82, 32);
+            this.btnConnect.TabIndex = 9;
+            this.btnConnect.Text = "连接串口";
+            this.btnConnect.UseVisualStyleBackColor = true;
+            this.btnConnect.Click += new System.EventHandler(this.btnConnect_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(734, 553);
+            this.ClientSize = new System.Drawing.Size(672, 509);
+            this.Controls.Add(this.btnConnect);
+            this.Controls.Add(this.cbSerialName);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.btnImportMap);
             this.Controls.Add(this.btnCreateObs);
@@ -143,8 +179,10 @@
             this.Controls.Add(this.btnEndPoint);
             this.Controls.Add(this.btnStartPoint);
             this.Controls.Add(this.pictureBox1);
+            this.Location = new System.Drawing.Point(-20, -20);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
@@ -163,6 +201,10 @@
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Button btnImportMap;
         private System.Windows.Forms.Button btnTest;
+        private System.IO.Ports.SerialPort rplidar;
+        private System.IO.Ports.SerialPort serialPort;
+        private System.Windows.Forms.ComboBox cbSerialName;
+        private System.Windows.Forms.Button btnConnect;
     }
 }
 
