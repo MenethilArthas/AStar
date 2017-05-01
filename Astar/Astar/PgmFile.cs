@@ -28,40 +28,39 @@ namespace Astar
                 str = sr.ReadLine();//comment context
                 str = sr.ReadLine();//width height
                 string[] size = str.Split(' ');
-                map.width = Convert.ToInt32(size[0]);
-                map.height = Convert.ToInt32(size[1]);
+                map.width = Convert.ToInt32(size[0])-300;
+                map.height = Convert.ToInt32(size[1])-350;
 
         
 
-                costMap = new int[map.width * map.height];
+                costMap = new int[(map.width) * (map.height)];
                 
                 str = sr.ReadLine();//255
 
                 str = sr.ReadLine();
                 //str = sr.ReadLine();
-                map.mapdata = new byte[map.width * map.height];
-                map.type = new byte[map.width * map.height];
-                for (int i = 0; i < map.height; i++)
+                map.mapdata = new byte[(map.width ) * (map.height )];
+                map.type = new byte[(map.width ) * (map.height )];
+                for (int i = 200; i < 200+map.height; i++)
                 {
-                    for (int j = 0; j < map.width; j++)
+                    for (int j = 100; j < 100+map.width; j++)
                     {
-                        map.mapdata[i * map.width + j] = (byte)str[i * map.width + j];
-                        if (map.mapdata[i * map.width + j] == 0)
+                        map.mapdata[(i-200) * (map.width) + (j-100)] = (byte)str[i * (map.width+300)+ j];
+                        if (map.mapdata[(i - 200) * (map.width ) + (j - 100)] == 0)
                         {
-                            map.type[i * map.width + j] = 1;
-                            int qunima = 5;
-                            for (int k = i - qunima; k <= i + qunima; k++)
-                            {
-                                for (int w = -qunima; w <= qunima; w++)
-                                {
-                                    costMap[k * map.width + j + w] = obsCost;
-                                }
-
-                            }
+                            map.type[(i - 200) * (map.width ) + (j - 100)] = 1;
+                            //int qunima = 5;
+                            //for (int k = i - qunima; k <= i + qunima; k++)
+                            //{
+                            //    for (int w = -qunima; w <= qunima; w++)
+                            //    {
+                            //        costMap[k * map.width + j + w] = obsCost;
+                            //    }
+                            //}
                         }
 
                         else
-                            map.type[i * map.width + j] = 0;
+                            map.type[(i - 200) * (map.width ) + (j - 100)] = 0;
                     }
                 }
             }

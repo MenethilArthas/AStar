@@ -14,7 +14,7 @@ namespace Astar
         public Point startPoint;
         private Point goalPoint;
         private TWD[] twds=new TWD[8];
-        private int[] costMap;
+        public int[] costMap;
         public Stack<Point> keyPoints;
           
         public Navigate(MAP _map,Point _startPoint,Point _goalPoint,int [] _test)
