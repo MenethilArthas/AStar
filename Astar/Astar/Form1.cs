@@ -101,11 +101,11 @@ namespace Astar
             startPoint = new Point(310-100, 310-200);
 
 
-            rplidar = new Rplidar(startPoint);
-            rplidar.StartMotor();
-            rplidar.GetInfo();
-            Thread thread = new Thread(new ThreadStart(rplidar.Rplidar_DataReceived));
-            thread.Start();
+            //rplidar = new Rplidar(startPoint);
+            //rplidar.StartMotor();
+            //rplidar.GetInfo();
+            //Thread thread = new Thread(new ThreadStart(rplidar.Rplidar_DataReceived));
+            //thread.Start();
         }
 
         private void btnImportMap_Click(object sender, EventArgs e)
